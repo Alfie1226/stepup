@@ -1,20 +1,52 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>걸음 테스트</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .count { font-size: 2rem; margin-bottom: 10px; }
-    .log { margin-top: 10px; color: #555; }
-  </style>
+  <meta charset="UTF-8">
+  <title>스텝 게임</title>
 </head>
 <body>
-  <h1>걸음 테스트 페이지</h1>
-  <div class="count">걸음 수: <span id="steps">0</span></div>
-  <div class="log" id="log">센서 대기중...</div>
+  <h1>스텝 게임</h1>
+  <p>버튼 누르고 폰 들고 흔들어봐</p>
+  <button id="startBtn">운동 시작</button>
 
-  <!-- JS 분리해서 연결 -->
-  <script src="step.js"></script>
+  <script>
+    const btn = document.getElementById('startBtn');
+
+    btn.addEventListener('click', async () => {
+      // iOS는 권한 요청 필요
+      if (typeof DeviceMotionEvent !== 'undefined' &&
+          typeof DeviceMotionEvent.requestPermission === 'function') {
+        const res = await DeviceMotionEvent.requestPermission();
+        if (res !== 'granted') {
+          alert('센서 권한을 허용해 주세요!');
+          return;
+        }
+      }
+
+      // 여기서부터 진짜로 데이터 받기 시작
+      window.addEventListener('devicemotion', handleMotion);
+      alert('시작! 이제 흔들어보세요');
+    });
+
+    let lastPower = 0;
+
+    function handleMotion(e) {
+      const x = e.accelerationIncludingGravity.x || 0;
+      const y = e.accelerationIncludingGravity.y || 0;
+      const z = e.accelerationIncludingGravity.z || 0;
+
+      // 대충 흔들림 세기
+      const power = Math.sqrt(x*x + y*y + z*z);
+
+      // 문턱값 넘으면 "한 번 걸었다"라고 보기
+      if (power > 18 && lastPower <= 18) {
+        console.log('step!');
+        // 여기서 몬스터 공격 함수 호출하면 됨
+        // attackMonster();
+      }
+
+      lastPower = power;
+    }
+  </script>
 </body>
 </html>
